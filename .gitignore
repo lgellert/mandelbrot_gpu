@@ -1,0 +1,13 @@
+*.py[cod]
+*.iml
+.idea/
+*.log
+
+.DS_Store
+Thumbs.db
+
+.idea
+.project
+
+
+
