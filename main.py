@@ -4,50 +4,39 @@ import os
 # disable TensorFlow notices
 os.environ['TF_CPP_MIN_LOG_LEVEL'] = '2'
 
-from mandelbrot import compute_mandelbrot_cpu, display_array_as_image, WIDTH, HEIGHT, compute_mandelbrot_tensor_flow
-
-print('Building Mandelbrot using CPU - Resolution %dx%d' % (WIDTH, HEIGHT))
-start = time.time()
-pixels_cpu = compute_mandelbrot_cpu()
-end = time.time()
-total_time = round(end - start, 6)
-
-# report the time it took and summary data
-print('Pixel array computed in', total_time, 'seconds')
-print('Pixels computed', len(pixels_cpu), 'x', len(pixels_cpu[0]))
-
-# show the CPU image
-display_array_as_image(pixels_cpu, 'Mandelbrot CPU %dx%d in %s seconds' % (WIDTH, HEIGHT, total_time))
+from mandelbrot import MandelbrotCPUBasic, MandelbrotTensorFlow
 
 
 print('------------------------------------')
-print('Building Mandelbrot using TensorFlow (CPU Device) - Resolution %dx%d' % (WIDTH, HEIGHT))
+print('Building Mandelbrot using basic CPU logic')
+print('| Device Type | Size        | Time (seconds) |')
+for size in [500, 2500, 5000]:
 
-start = time.time()
-pixels_tf = compute_mandelbrot_tensor_flow('/CPU:0')
-end = time.time()
-total_time = round(end - start, 6)
+    mb_logic = MandelbrotCPUBasic(size, 50)
+    start = time.time()
+    pixels_cpu = mb_logic.compute()
+    end = time.time()
+    total_time = round(end - start, 6)
 
-
-# report the time it took and summary data
-print('Pixel array computed in', total_time, 'seconds')
-print('Pixels computed', len(pixels_tf), 'x', len(pixels_tf[0]))
-
-# show the image
-display_array_as_image(pixels_tf, 'Mandelbrot TensorFlow (CPU Device) %dx%d in %s seconds' % (WIDTH, HEIGHT, total_time))
-
+    # report the time it took and summary data
+    print('| CPU Basic | %dx%d | %s |' % (size, size, total_time))
 
 print('------------------------------------')
-print('Building Mandelbrot using TensorFlow (GPU Device) - Resolution %dx%d' % (WIDTH, HEIGHT))
+print('Building Mandelbrot using TensorFlow:')
+print('| Device Type | Size        | Time (seconds) |')
 
-start = time.time()
-pixels_tf = compute_mandelbrot_tensor_flow('/GPU:0')
-end = time.time()
-total_time = round(end - start, 6)
+for device in ['/GPU:0', '/CPU:0']:
+    for size in [500, 2500, 5000, 10000, 15000]:
 
-# report the time it took and summary data
-print('Pixel array computed in', total_time, 'seconds')
-print('Pixels computed', len(pixels_tf), 'x', len(pixels_tf[0]))
+        mb_logic = MandelbrotTensorFlow(size, 250)
+        start = time.time()
+        pixels_tf = mb_logic.compute(device=device)
+        end = time.time()
+        total_time = round(end - start, 6)
 
-# show the image
-display_array_as_image(pixels_tf, 'Mandelbrot TensorFlow (GPU Device) %dx%d in %s seconds' % (WIDTH, HEIGHT, total_time))
+        # report the time it took and summary data
+        print('| %s | %dx%d | %s |' % ('TensorFlow ' + device, size, size, total_time))
+
+
+# show the last image
+mb_logic.display_array_as_image(pixels_tf, 'Mandelbrot TensorFlow (%s) %dx%d in %s seconds' % (device, size, size, total_time))
